@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -9,16 +8,19 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String     @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean    @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  role          Role      @default(USER)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  role          Role       @default(USER)
   sessions      Session[]
   accounts      Account[]
+  annonces      Annonce[]
+  questions     Question[]
+  favoris       Favori[]
 
   @@unique([email])
   @@map("user")
@@ -76,4 +78,86 @@ enum Role {
   USER
   AGENT
   ADMIN
+}
+
+enum TypeBien {
+  VENTE
+  LOCATION
+}
+
+enum StatutPublication {
+  BROUILLON
+  PUBLIEE
+}
+
+enum StatutBien {
+  DISPONIBLE
+  LOUE
+  VENDU
+}
+
+model Annonce {
+  id                Int               @id @default(autoincrement())
+  titre             String
+  description       String
+  typeBien          TypeBien
+  statutPublication StatutPublication @default(BROUILLON)
+  statutBien        StatutBien        @default(DISPONIBLE)
+  prix              Int
+  dateDisponibilite DateTime
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  auteurId  String
+  auteur    User       @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+  photos    Photo[]
+  questions Question[]
+  favoris   Favori[]
+
+  // Liste publique : WHERE statutPublication = 'PUBLIEE' ORDER BY createdAt DESC
+  @@index([statutPublication, createdAt])
+  // "Mes annonces" d'un agent, et vérification de propriété
+  @@index([auteurId])
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  url       String
+  ordre     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  annonceId Int
+  annonce   Annonce @relation(fields: [annonceId], references: [id], onDelete: Cascade)
+
+  // include: { photos } sur la liste → WHERE annonceId IN (...)
+  @@index([annonceId])
+}
+
+model Question {
+  id        Int       @id @default(autoincrement())
+  contenu   String
+  reponse   String?
+  reponduLe DateTime?
+  createdAt DateTime  @default(now())
+
+  annonceId Int
+  annonce   Annonce @relation(fields: [annonceId], references: [id], onDelete: Cascade)
+  auteurId  String
+  auteur    User    @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+
+  // Page détail : questions d'une annonce triées par date
+  @@index([annonceId, createdAt])
+}
+
+model Favori {
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  annonceId Int
+  annonce   Annonce @relation(fields: [annonceId], references: [id], onDelete: Cascade)
+
+  // Clé composée : impossible d'ajouter deux fois la même annonce en favori
+  @@id([userId, annonceId])
+  @@index([annonceId])
 }
