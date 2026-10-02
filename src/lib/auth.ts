@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 import { prisma } from "./prisma";
 
 export const auth = betterAuth({
@@ -23,4 +24,7 @@ export const auth = betterAuth({
       },
     },
   },
+  // Permet aux Server Actions de poser le cookie de session.
+  // Doit rester le DERNIER plugin de la liste.
+  plugins: [nextCookies()],
 });
