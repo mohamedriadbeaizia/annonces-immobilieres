@@ -16,7 +16,8 @@
 |---|---|---|---|
 | 0 · Mise en place | Synthèse du sujet et du cours, plan en 9 phases, `.gitignore` complet, squelettes README / AI.md | Création du dépôt sur la forge, installation, vérification des versions, restructuration du projet | Synthétiser 36 pages est rapide pour l'IA ; l'état réel de notre machine, seuls nous pouvons le constater |
 | 1 · Infra et modèle | Premier jet de `docker-compose.yml`, `prisma.config.ts`, `prisma.ts`, `auth.ts`, modèles métier et seed | Choix du modèle (id `Int`, prix `Int`, enums, clé composée des favoris), résolution des erreurs d'environnement (port, `.env`, client non généré) | Le code d'infrastructure suit la doc ; les choix de modélisation, nous devons pouvoir les défendre |
-| 2 · Lecture SSR | Premier jet des pages liste/détail, schémas Zod des paramètres d'URL | Mesures : `curl` des codes de statut, comptage des requêtes SQL à 12 puis 30 annonces | La conformité aux critères se prouve par la mesure, pas par la lecture du code || 3 · Authentification | | | |
+| 2 · Lecture SSR | Premier jet des pages liste/détail, schémas Zod des paramètres d'URL | Mesures : `curl` des codes de statut, comptage des requêtes SQL à 12 puis 30 annonces | La conformité aux critères se prouve par la mesure, pas par la lecture du code ||
+| 3 · Authentification | Premier jet des Server Actions d'inscription / connexion, du formulaire client et de la navigation | Tests manuels avec plusieurs comptes, vérification en base du rôle et de la table `session` | La configuration Better Auth suit la doc ; le rôle non falsifiable, nous l'avons prouvé nous-mêmes (curl + SQL) |
 | 4 · Autorisation | | | |
 | 5 · Validation | | | |
 | 6 · Interface | | | |
