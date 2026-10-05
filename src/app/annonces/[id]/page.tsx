@@ -1,25 +1,31 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getAnnoncePublique } from "@/lib/annonces";
+import { getAnnonceVisible } from "@/lib/annonces";
 import { formatDate, formatPrix, LIBELLE_STATUT_BIEN, LIBELLE_TYPE } from "@/lib/format";
 import { IdAnnonce } from "@/lib/schemas";
+import { acteurCourant } from "@/lib/session";
 import { Questions } from "./questions";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function AnnoncePage({ params }: Props) {
-  // params est une Promise (Next 15+). Sans await, id serait undefined
-  // et la page s'afficherait vide... avec un build pourtant vert.
   const { id } = await params;
-
   const parsed = IdAnnonce.safeParse(id);
-  if (!parsed.success) notFound(); // /annonces/abc → 404
+  if (!parsed.success) notFound();
 
-  const annonce = await getAnnoncePublique(parsed.data);
-  if (!annonce) notFound(); // /annonces/999999 ou brouillon → 404
+  const acteur = await acteurCourant();
+  // Brouillon : visible uniquement par son auteur et les admins (règle dans authz.ts).
+  const annonce = await getAnnonceVisible(parsed.data, acteur);
+  if (!annonce) notFound();
 
   return (
     <main className="mx-auto max-w-3xl space-y-8 px-4 py-8">
+      {annonce.statutPublication === "BROUILLON" && (
+        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+          Brouillon : cette annonce n&apos;est visible que par son auteur et les administrateurs.
+        </p>
+      )}
+
       <header className="space-y-2">
         <p className="text-sm uppercase tracking-wide text-gray-500">
           {LIBELLE_TYPE[annonce.typeBien]} · {LIBELLE_STATUT_BIEN[annonce.statutBien]}
@@ -49,14 +55,7 @@ export default async function AnnoncePage({ params }: Props) {
 
       <section>
         <h2 className="mb-4 text-xl font-semibold">Questions</h2>
-        {/*
-          Suspense LOCAL plutôt qu'un loading.tsx :
-          - l'essentiel (titre, prix, description) s'affiche tout de suite,
-            les questions (liste qui grandit avec le temps) arrivent ensuite en streaming ;
-          - notFound() est appelé AVANT cette frontière, donc le statut 404 est encore
-            modifiable. Un loading.tsx dans app/annonces/ mettrait tout le sous-arbre
-            en streaming et figerait le statut à 200.
-        */}
+        {/* Suspense local plutôt qu'un loading.tsx : voir la justification en phase 2. */}
         <Suspense fallback={<p className="text-gray-500">Chargement des questions…</p>}>
           <Questions annonceId={annonce.id} />
         </Suspense>

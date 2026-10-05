@@ -22,3 +22,18 @@ export const ConnexionInput = z.object({
   password: z.string().min(1, "Mot de passe requis"),
 });
 
+export const AnnonceInput = z.object({
+  titre: z.string().trim().min(5, "5 caractères minimum").max(120, "120 caractères maximum"),
+  description: z.string().trim().min(20, "20 caractères minimum").max(5000, "5000 caractères maximum"),
+  typeBien: z.enum(["VENTE", "LOCATION"], "Type de bien invalide"),
+  statutBien: z.enum(["DISPONIBLE", "LOUE", "VENDU"], "Statut invalide"),
+  prix: z.coerce
+    .number("Prix invalide")
+    .int("Prix en euros entiers")
+    .positive("Le prix doit être positif")
+    .max(100_000_000, "Prix trop élevé"),
+  dateDisponibilite: z.coerce.date("Date invalide"),
+});
+
+// Bouton Publier / Dépublier : la seule valeur acceptée est "true" ou "false".
+export const PublicationInput = z.enum(["true", "false"]);
