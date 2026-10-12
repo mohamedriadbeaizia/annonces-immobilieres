@@ -91,3 +91,28 @@ export async function listerAnnoncesGerees(acteur: Acteur) {
     },
   });
 }
+
+
+
+export async function estFavori(userId: string, annonceId: number) {
+  const favori = await prisma.favori.findUnique({
+    // Clé primaire composée (userId, annonceId) définie dans le schéma :
+    // Prisma génère ce nom "userId_annonceId" pour la chercher directement.
+    where: { userId_annonceId: { userId, annonceId } },
+    select: { annonceId: true },
+  });
+  return favori !== null;
+}
+
+export async function listerFavoris(userId: string) {
+  return prisma.favori.findMany({
+    // Une annonce dépubliée depuis sa mise en favori disparaît de la liste.
+    where: { userId, annonce: { statutPublication: "PUBLIEE" } },
+    orderBy: { createdAt: "desc" },
+    select: {
+      annonce: {
+        select: { id: true, titre: true, prix: true, typeBien: true, statutBien: true },
+      },
+    },
+  });
+}

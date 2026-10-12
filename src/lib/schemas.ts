@@ -37,3 +37,14 @@ export const AnnonceInput = z.object({
 
 // Bouton Publier / Dépublier : la seule valeur acceptée est "true" ou "false".
 export const PublicationInput = z.enum(["true", "false"]);
+
+// Mêmes contraintes qu'un id d'annonce (entier positif, borné à l'INT PostgreSQL).
+export const IdQuestion = IdAnnonce;
+
+export const QuestionInput = z.object({
+  contenu: z.string().trim().min(5, "5 caractères minimum").max(1000, "1000 caractères maximum"),
+});
+
+export const ReponseInput = z.object({
+  reponse: z.string().trim().min(2, "2 caractères minimum").max(2000, "2000 caractères maximum"),
+});

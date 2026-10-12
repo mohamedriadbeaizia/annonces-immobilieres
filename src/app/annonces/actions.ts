@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { filtreModifiables, peutGererAnnonces } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
-import { AnnonceInput, IdAnnonce, PublicationInput } from "@/lib/schemas";
+import { AnnonceInput, IdAnnonce, IdQuestion, PublicationInput, QuestionInput, ReponseInput, } from "@/lib/schemas";
 import { exigerUtilisateur } from "@/lib/session";
 
 export type ValeursAnnonce = {
@@ -129,4 +129,88 @@ export async function changerPublication(formData: FormData) {
   if (res.count === 0) throw new Error(INTERDIT);
 
   rafraichir(id.data);
+}
+
+// ─── Questions, réponses, favoris ────────────────────────────────────────────
+
+export type EtatTexte = {
+  erreurs?: Record<string, string[] | undefined>;
+  valeur?: string; // texte saisi, renvoyé pour être conservé après une erreur
+  succes?: string;
+};
+
+export async function poserQuestion(_etat: EtatTexte, formData: FormData): Promise<EtatTexte> {
+  // 1. Authentification : n'importe quel utilisateur connecté.
+  const acteur = await exigerUtilisateur();
+  // 2. Autorisation : uniquement sur une annonce PUBLIÉE (l'id vient du client).
+  const annonceId = IdAnnonce.safeParse(formData.get("annonceId"));
+  if (!annonceId.success) throw new Error(INTERDIT);
+  const annonce = await prisma.annonce.findFirst({
+    where: { id: annonceId.data, statutPublication: "PUBLIEE" },
+    select: { id: true },
+  });
+  if (!annonce) throw new Error(INTERDIT);
+  // 3. Validation
+  const valeur = String(formData.get("contenu") ?? "");
+  const parsed = QuestionInput.safeParse({ contenu: valeur });
+  if (!parsed.success) return { erreurs: z.flattenError(parsed.error).fieldErrors, valeur };
+  // 4. Écriture : l'auteur vient de la session.
+  await prisma.question.create({
+    data: { contenu: parsed.data.contenu, annonceId: annonce.id, auteurId: acteur.id },
+  });
+
+  revalidatePath(`/annonces/${annonce.id}`);
+  return { succes: "Question envoyée." };
+}
+
+export async function repondreQuestion(_etat: EtatTexte, formData: FormData): Promise<EtatTexte> {
+  // 1. Authentification
+  const acteur = await exigerUtilisateur();
+  // 2. Autorisation : la question doit porter sur une annonce que l'acteur peut gérer.
+  //    Agent B avec l'id d'une question sur l'annonce de A → introuvable → erreur.
+  const questionId = IdQuestion.safeParse(formData.get("questionId"));
+  if (!questionId.success || !peutGererAnnonces(acteur)) throw new Error(INTERDIT);
+  const condition = { id: questionId.data, annonce: filtreModifiables(acteur) };
+  const question = await prisma.question.findFirst({
+    where: condition,
+    select: { id: true, annonceId: true },
+  });
+  if (!question) throw new Error(INTERDIT);
+  // 3. Validation
+  const valeur = String(formData.get("reponse") ?? "");
+  const parsed = ReponseInput.safeParse({ reponse: valeur });
+  if (!parsed.success) return { erreurs: z.flattenError(parsed.error).fieldErrors, valeur };
+  // 4. Écriture, propriété toujours dans la condition.
+  const res = await prisma.question.updateMany({
+    where: condition,
+    data: { reponse: parsed.data.reponse, reponduLe: new Date() },
+  });
+  if (res.count === 0) throw new Error(INTERDIT);
+
+  revalidatePath(`/annonces/${question.annonceId}`);
+  return { succes: "Réponse publiée." };
+}
+
+export async function basculerFavori(formData: FormData) {
+  // 1. Authentification
+  const acteur = await exigerUtilisateur();
+  // 2. Autorisation : annonce publiée uniquement.
+  const annonceId = IdAnnonce.safeParse(formData.get("annonceId"));
+  if (!annonceId.success) throw new Error(INTERDIT);
+  const annonce = await prisma.annonce.findFirst({
+    where: { id: annonceId.data, statutPublication: "PUBLIEE" },
+    select: { id: true },
+  });
+  if (!annonce) throw new Error(INTERDIT);
+  // 3. Écriture : on tente de retirer ; si rien n'a été retiré, on ajoute.
+  //    Le userId vient de la session : impossible de toucher aux favoris d'un autre.
+  const retires = await prisma.favori.deleteMany({
+    where: { userId: acteur.id, annonceId: annonce.id },
+  });
+  if (retires.count === 0) {
+    await prisma.favori.create({ data: { userId: acteur.id, annonceId: annonce.id } });
+  }
+
+  revalidatePath(`/annonces/${annonce.id}`);
+  revalidatePath("/favoris");
 }

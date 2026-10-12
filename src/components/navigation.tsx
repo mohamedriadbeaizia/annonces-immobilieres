@@ -16,7 +16,10 @@ export async function Navigation() {
 
         {user ? (
           <div className="flex items-center gap-3 text-sm">
-                        {(user.role === "AGENT" || user.role === "ADMIN") && (
+                   <Link href="/favoris" className="hover:underline">
+                  Favoris
+                    </Link>
+                 {(user.role === "AGENT" || user.role === "ADMIN") && (
               <>
                 <Link href="/mes-annonces" className="hover:underline">
                   {user.role === "ADMIN" ? "Gestion" : "Mes annonces"}

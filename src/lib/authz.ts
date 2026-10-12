@@ -31,3 +31,9 @@ export function filtreVisibles(acteur: Acteur | null) {
   if (acteur.role === "ADMIN") return {};
   return { OR: [{ statutPublication: "PUBLIEE" as const }, { auteurId: acteur.id }] };
 }
+
+
+/** Poser une question : être connecté, sur une annonce publiée. */
+export function peutPoserQuestion(acteur: Acteur | null, annonce: { statutPublication: string }): boolean {
+  return acteur !== null && annonce.statutPublication === "PUBLIEE";
+}
