@@ -19,7 +19,7 @@
 | 2 · Lecture SSR | Premier jet des pages liste/détail, schémas Zod des paramètres d'URL | Mesures : `curl` des codes de statut, comptage des requêtes SQL à 12 puis 30 annonces | La conformité aux critères se prouve par la mesure, pas par la lecture du code |
 | 3 · Authentification | Premier jet des Server Actions d'inscription / connexion, du formulaire client et de la navigation | Tests manuels avec plusieurs comptes, vérification en base du rôle et de la table `session` | La configuration Better Auth suit la doc ; le rôle non falsifiable, nous l'avons prouvé nous-mêmes (curl + SQL) |
 | 4 · Autorisation | Premier jet de `authz.ts`, des Server Actions (CRUD, questions, réponses, favoris) et des pages de gestion | Relecture de chaque condition d'autorisation, tests des codes 200/404/307 en curl, tests IDOR manuels (suppression, réponse, question et favori sur brouillon) en modifiant les champs cachés depuis la console | C'est la partie évaluée en priorité : nous devons pouvoir montrer où et comment chaque droit est vérifié |
-| 5 · Validation | | | |
+| 5 · Validation | Schémas Zod (construits au fil des phases 2 à 4), validation des variables d'environnement, page 404 | Vérification que chaque entrée (formulaire, paramètre d'URL, champ caché, variable d'environnement) passe par Zod ; test du garde-fou avec un secret invalide | La validation a été ajoutée là où chaque donnée entre, pas dans une phase à part ; cette phase a servi à vérifier qu'aucune frontière n'avait été oubliée |
 | 6 · Interface | | | |
 | 7 · Tests | | | |
 

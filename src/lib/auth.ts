@@ -2,8 +2,12 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "./prisma";
+import { env } from "./env";
 
 export const auth = betterAuth({
+    // Explicite plutôt que lu implicitement par la bibliothèque : valeurs déjà validées.
+  secret: env.BETTER_AUTH_SECRET,
+  baseURL: env.BETTER_AUTH_URL,
   database: prismaAdapter(prisma, { provider: "postgresql" }),
 
   // Email + mot de passe. Le hachage (scrypt) est fait par Better Auth,
