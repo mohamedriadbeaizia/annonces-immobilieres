@@ -9,13 +9,13 @@ export async function Navigation() {
 
   return (
     <header className="border-b">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/annonces" className="text-lg font-bold">
           Immobilier
         </Link>
 
         {user ? (
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                    <Link href="/favoris" className="hover:underline">
                   Favoris
                     </Link>
