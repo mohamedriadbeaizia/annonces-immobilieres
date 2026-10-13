@@ -1,31 +1,33 @@
-import { Navigation } from "@/components/navigation";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Barlow, Barlow_Condensed } from "next/font/google";
+import { Navigation } from "@/components/navigation";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// next/font télécharge les polices au build et les sert depuis le site :
+// pas de requête vers Google au chargement de la page.
+const barlow = Barlow({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-barlow",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const barlowCondensed = Barlow_Condensed({
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-barlow-condensed",
 });
 
 export const metadata: Metadata = {
-  title: "Immobilier App",
-  description: "Gestion d'annonces immobilières",
+  title: "Port d'attache — annonces immobilières",
+  description: "Ventes et locations entre Le Havre et la côte normande",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}
-         <Navigation />
+    <html lang="fr" className={`${barlow.variable} ${barlowCondensed.variable}`}>
+      <body className="min-h-screen antialiased">
+        <Navigation />
+        {children}
       </body>
     </html>
   );
