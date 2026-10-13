@@ -16,6 +16,19 @@ export async function Navigation() {
 
         {user ? (
           <div className="flex items-center gap-3 text-sm">
+                   <Link href="/favoris" className="hover:underline">
+                  Favoris
+                    </Link>
+                 {(user.role === "AGENT" || user.role === "ADMIN") && (
+              <>
+                <Link href="/mes-annonces" className="hover:underline">
+                  {user.role === "ADMIN" ? "Gestion" : "Mes annonces"}
+                </Link>
+                <Link href="/annonces/new" className="hover:underline">
+                  Nouvelle annonce
+                </Link>
+              </>
+            )}
             <span>{user.name}</span>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
               {LIBELLE_ROLE[user.role as keyof typeof LIBELLE_ROLE] ?? user.role}

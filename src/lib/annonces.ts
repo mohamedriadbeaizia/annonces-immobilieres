@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { type Acteur, filtreModifiables, filtreVisibles } from "./authz";
 
 export const PAR_PAGE = 9;
 
@@ -54,5 +55,64 @@ export async function listerQuestions(annonceId: number) {
     where: { annonceId },
     orderBy: { createdAt: "asc" }, // servi par @@index([annonceId, createdAt])
     include: { auteur: { select: { name: true } } },
+  });
+}
+/** Détail : publiée pour tous, brouillon seulement pour l'auteur et les admins. */
+export async function getAnnonceVisible(id: number, acteur: Acteur | null) {
+  return prisma.annonce.findFirst({
+    where: { id, ...filtreVisibles(acteur) },
+    include: {
+      auteur: { select: { name: true } },
+      photos: { orderBy: { ordre: "asc" } },
+    },
+  });
+}
+
+/** Édition : null si l'annonce n'existe pas OU n'appartient pas à l'acteur → même 404. */
+export async function getAnnonceModifiable(id: number, acteur: Acteur) {
+  return prisma.annonce.findFirst({ where: { id, ...filtreModifiables(acteur) } });
+}
+
+/** Tableau de bord : les annonces de l'agent (toutes pour un admin), brouillons compris. */
+export async function listerAnnoncesGerees(acteur: Acteur) {
+  return prisma.annonce.findMany({
+    where: filtreModifiables(acteur),
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      titre: true,
+      prix: true,
+      typeBien: true,
+      statutPublication: true,
+      statutBien: true,
+      auteurId: true,
+      auteur: { select: { name: true } },
+      _count: { select: { questions: true } },
+    },
+  });
+}
+
+
+
+export async function estFavori(userId: string, annonceId: number) {
+  const favori = await prisma.favori.findUnique({
+    // Clé primaire composée (userId, annonceId) définie dans le schéma :
+    // Prisma génère ce nom "userId_annonceId" pour la chercher directement.
+    where: { userId_annonceId: { userId, annonceId } },
+    select: { annonceId: true },
+  });
+  return favori !== null;
+}
+
+export async function listerFavoris(userId: string) {
+  return prisma.favori.findMany({
+    // Une annonce dépubliée depuis sa mise en favori disparaît de la liste.
+    where: { userId, annonce: { statutPublication: "PUBLIEE" } },
+    orderBy: { createdAt: "desc" },
+    select: {
+      annonce: {
+        select: { id: true, titre: true, prix: true, typeBien: true, statutBien: true },
+      },
+    },
   });
 }

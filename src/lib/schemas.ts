@@ -22,3 +22,29 @@ export const ConnexionInput = z.object({
   password: z.string().min(1, "Mot de passe requis"),
 });
 
+export const AnnonceInput = z.object({
+  titre: z.string().trim().min(5, "5 caractères minimum").max(120, "120 caractères maximum"),
+  description: z.string().trim().min(20, "20 caractères minimum").max(5000, "5000 caractères maximum"),
+  typeBien: z.enum(["VENTE", "LOCATION"], "Type de bien invalide"),
+  statutBien: z.enum(["DISPONIBLE", "LOUE", "VENDU"], "Statut invalide"),
+  prix: z.coerce
+    .number("Prix invalide")
+    .int("Prix en euros entiers")
+    .positive("Le prix doit être positif")
+    .max(100_000_000, "Prix trop élevé"),
+  dateDisponibilite: z.coerce.date("Date invalide"),
+});
+
+// Bouton Publier / Dépublier : la seule valeur acceptée est "true" ou "false".
+export const PublicationInput = z.enum(["true", "false"]);
+
+// Mêmes contraintes qu'un id d'annonce (entier positif, borné à l'INT PostgreSQL).
+export const IdQuestion = IdAnnonce;
+
+export const QuestionInput = z.object({
+  contenu: z.string().trim().min(5, "5 caractères minimum").max(1000, "1000 caractères maximum"),
+});
+
+export const ReponseInput = z.object({
+  reponse: z.string().trim().min(2, "2 caractères minimum").max(2000, "2000 caractères maximum"),
+});
