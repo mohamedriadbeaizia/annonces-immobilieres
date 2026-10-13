@@ -37,9 +37,8 @@ yarn-error.log*
 # prisma : client généré (régénéré par postinstall)
 /src/generated/prisma
 
-# uploads de photos en local (si stockage disque)
-/public/uploads/*
-!/public/uploads/.gitkeep
+# photos envoyées par les utilisateurs (stockées hors de public/)
+/uploads/
 
 # vercel
 .vercel

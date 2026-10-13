@@ -10,6 +10,7 @@ import { IdAnnonce } from "@/lib/schemas";
 import { acteurCourant } from "@/lib/session";
 import { basculerFavori, poserQuestion } from "../actions";
 import { Questions } from "./questions";
+import Image from "next/image";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -65,11 +66,18 @@ export default async function AnnoncePage({ params }: Props) {
       </header>
 
       {annonce.photos.length > 0 && (
-        <ul className="grid grid-cols-2 gap-2">
-          {annonce.photos.map((p) => (
-            <li key={p.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- remplacé par next/image en phase 6 */}
-              <img src={p.url} alt="" className="aspect-video w-full rounded object-cover" />
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {annonce.photos.map((p, i) => (
+            <li key={p.id} className="relative aspect-video overflow-hidden rounded bg-gray-100">
+              <Image
+                src={p.url}
+                alt={`Photo ${i + 1} : ${annonce.titre}`}
+                fill
+                // Première photo chargée en priorité : c'est celle qu'on voit en arrivant.
+                priority={i === 0}
+                sizes="(min-width: 640px) 50vw, 100vw"
+                className="object-cover"
+              />
             </li>
           ))}
         </ul>

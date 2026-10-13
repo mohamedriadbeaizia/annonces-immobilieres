@@ -48,3 +48,21 @@ export const QuestionInput = z.object({
 export const ReponseInput = z.object({
   reponse: z.string().trim().min(2, "2 caractères minimum").max(2000, "2000 caractères maximum"),
 });
+// ─── Photos ──────────────────────────────────────────────────────────────────
+
+export const TYPES_PHOTO = ["image/jpeg", "image/png", "image/webp"];
+export const TAILLE_MAX_PHOTO = 5 * 1024 * 1024; // 5 Mo
+export const NB_MAX_PHOTOS_ENVOI = 4;
+export const NB_MAX_PHOTOS_ANNONCE = 12;
+
+export const IdPhoto = IdAnnonce;
+
+export const PhotosInput = z
+  .array(
+    z
+      .file("Fichier invalide")
+      .mime(TYPES_PHOTO, "Formats acceptés : JPEG, PNG, WebP")
+      .max(TAILLE_MAX_PHOTO, "5 Mo maximum par photo"),
+  )
+  .min(1, "Choisissez au moins une photo")
+  .max(NB_MAX_PHOTOS_ENVOI, `${NB_MAX_PHOTOS_ENVOI} photos maximum par envoi`);

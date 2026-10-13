@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Palette "côtier normand" : chaque couleur a un rôle, voir README. */
+@theme {
+  --color-manche: #13294b;
+  --color-ardoise: #4a5d70;
+  --color-ecume: #f5f7f6;
+  --color-sable: #e8dfcd;
+  --color-galet: #cfd6d9;
+  /* Orange balise, foncé pour un contraste ≥ 4,5:1 avec du texte blanc (WCAG AA). */
+  --color-balise: #c9461a;
+  --color-balise-fonce: #a8370f;
+
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-titre: var(--font-barlow-condensed), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* Dans la couche "base" : les classes Tailwind posées sur un élément gardent la priorité. */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
+  }
+
+  body {
+    background: var(--color-ecume);
+    color: var(--color-manche);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-titre);
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  /* Focus clavier toujours visible, dans la couleur des actions. */
+  :focus-visible {
+    outline: 3px solid var(--color-balise);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Classes partagées : un bouton, un champ ou un badge a le même aspect partout. */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background-color 0.15s;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-primaire {
+    background: var(--color-balise);
+    color: white;
+  }
+  .btn-primaire:hover {
+    background: var(--color-balise-fonce);
+  }
+  .btn-secondaire {
+    border: 1px solid var(--color-galet);
+    background: white;
+    color: var(--color-manche);
+  }
+  .btn-secondaire:hover {
+    background: var(--color-sable);
+  }
+  .btn-danger {
+    border: 1px solid #f1b8a8;
+    background: white;
+    color: #a3300c;
+  }
+  .btn-danger:hover {
+    background: #fdeee9;
+  }
+
+  .champ {
+    width: 100%;
+    border: 1px solid var(--color-galet);
+    border-radius: 0.375rem;
+    background: white;
+    padding: 0.5rem 0.75rem;
+  }
+  .champ[aria-invalid="true"] {
+    border-color: #c2410c;
+  }
+
+  .badge {
+    display: inline-block;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
 }

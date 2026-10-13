@@ -6,44 +6,51 @@ const LIBELLE_ROLE = { USER: "Utilisateur", AGENT: "Agent", ADMIN: "Admin" } as 
 
 export async function Navigation() {
   const user = await utilisateurCourant();
+  const role = user?.role as keyof typeof LIBELLE_ROLE | undefined;
+  const gestionnaire = role === "AGENT" || role === "ADMIN";
 
   return (
-    <header className="border-b">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/annonces" className="text-lg font-bold">
-          Immobilier
+    <header className="bg-manche text-ecume">
+      <nav
+        aria-label="Navigation principale"
+        className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3"
+      >
+        <Link href="/annonces" className="font-titre text-2xl font-bold tracking-wide">
+          Port d&apos;attache
         </Link>
 
         {user ? (
-          <div className="flex items-center gap-3 text-sm">
-                   <Link href="/favoris" className="hover:underline">
-                  Favoris
-                    </Link>
-                 {(user.role === "AGENT" || user.role === "ADMIN") && (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <Link href="/favoris" className="hover:text-sable">
+              Favoris
+            </Link>
+            {gestionnaire && (
               <>
-                <Link href="/mes-annonces" className="hover:underline">
-                  {user.role === "ADMIN" ? "Gestion" : "Mes annonces"}
+                <Link href="/mes-annonces" className="hover:text-sable">
+                  {role === "ADMIN" ? "Gestion" : "Mes annonces"}
                 </Link>
-                <Link href="/annonces/new" className="hover:underline">
+                <Link href="/annonces/new" className="btn btn-primaire">
                   Nouvelle annonce
                 </Link>
               </>
             )}
-            <span>{user.name}</span>
-            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
-              {LIBELLE_ROLE[user.role as keyof typeof LIBELLE_ROLE] ?? user.role}
+            <span className="flex items-center gap-2 border-l border-white/20 pl-5">
+              {user.name}
+              <span className="badge bg-sable text-manche">{role ? LIBELLE_ROLE[role] : user.role}</span>
             </span>
             <form action={deconnecter}>
-              <button type="submit" className="underline hover:no-underline">
+              <button type="submit" className="underline-offset-4 hover:underline">
                 Déconnexion
               </button>
             </form>
           </div>
         ) : (
-          <div className="flex gap-3 text-sm">
-            <Link href="/login" className="hover:underline">Connexion</Link>
-            <Link href="/register" className="rounded bg-gray-900 px-3 py-1 text-white">
-              Inscription
+          <div className="flex items-center gap-4 text-sm">
+            <Link href="/login" className="hover:text-sable">
+              Connexion
+            </Link>
+            <Link href="/register" className="btn btn-primaire">
+              Créer un compte
             </Link>
           </div>
         )}

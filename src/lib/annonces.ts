@@ -70,7 +70,10 @@ export async function getAnnonceVisible(id: number, acteur: Acteur | null) {
 
 /** Édition : null si l'annonce n'existe pas OU n'appartient pas à l'acteur → même 404. */
 export async function getAnnonceModifiable(id: number, acteur: Acteur) {
-  return prisma.annonce.findFirst({ where: { id, ...filtreModifiables(acteur) } });
+  return prisma.annonce.findFirst({
+    where: { id, ...filtreModifiables(acteur) },
+    include: { photos: { orderBy: { ordre: "asc" } } },
+  });
 }
 
 /** Tableau de bord : les annonces de l'agent (toutes pour un admin), brouillons compris. */
