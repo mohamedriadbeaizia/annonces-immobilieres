@@ -20,13 +20,13 @@
 | 3 · Authentification | Premier jet des Server Actions d'inscription / connexion, du formulaire client et de la navigation | Tests manuels avec plusieurs comptes, vérification en base du rôle et de la table `session` | La configuration Better Auth suit la doc ; le rôle non falsifiable, nous l'avons prouvé nous-mêmes (curl + SQL) |
 | 4 · Autorisation | Premier jet de `authz.ts`, des Server Actions (CRUD, questions, réponses, favoris) et des pages de gestion | Relecture de chaque condition d'autorisation, tests des codes 200/404/307 en curl, tests IDOR manuels (suppression, réponse, question et favori sur brouillon) en modifiant les champs cachés depuis la console | C'est la partie évaluée en priorité : nous devons pouvoir montrer où et comment chaque droit est vérifié |
 | 5 · Validation | Schémas Zod (construits au fil des phases 2 à 4), validation des variables d'environnement, page 404 | Vérification que chaque entrée (formulaire, paramètre d'URL, champ caché, variable d'environnement) passe par Zod ; test du garde-fou avec un secret invalide | La validation a été ajoutée là où chaque donnée entre, pas dans une phase à part ; cette phase a servi à vérifier qu'aucune frontière n'avait été oubliée |
-| 6 · Interface | Premier jet de la route de lecture des photos, des Server Actions d'upload et des formulaires | Choix du stockage hors de `public/` (fichiers ajoutés après le build), tests path traversal en curl, test d'un faux `.jpg`, test IDOR sur la suppression de photo, vérification responsive en mode mobile | L'upload est une surface d'attaque : chaque protection (nom généré, signature du fichier, propriété) a été testée par une tentative réelle |
-| 7 · Tests | | | |
+| 6 · Interface | Premier jet de la route de lecture des photos, des Server Actions d'upload, des formulaires et de la base visuelle (palette, typographie, navigation) | Choix du stockage hors de `public/` (fichiers ajoutés après le build), tests path traversal en curl, test d'un faux `.jpg`, test IDOR sur la suppression de photo, vérification responsive en mode mobile ; choix de la direction visuelle (palette côtière) parmi trois propositions | L'upload est une surface d'attaque : chaque protection (nom généré, signature du fichier, propriété) a été testée par une tentative réelle |
+| 7 · Tests | Premier jet de la configuration Vitest (base séparée, global setup, setup), des fichiers de tests et du test IDOR sur la vraie Server Action | Vérification de l'isolation (comptage des lignes de la base de dev avant / après), sabotage volontaire de 4 règles pour vérifier que chaque test échoue, renforcement du garde-fou de `viderBase` | Un test généré peut passer sans rien prouver : seul le sabotage montre qu'il détecte vraiment le bug |
 
 ## 2. Suggestions rejetées (avec justification technique)
 
 1. **`role String` généré par la CLI Better Auth → enum `Role`.** La CLI ne traduit pas la liste de valeurs en enum Prisma. Avec `String`, PostgreSQL accepterait n'importe quelle valeur ; l'enum garantit la contrainte au niveau de la base, même pour une écriture qui contourne Better Auth.
-2. _À remplir._
+2. **Passer le projet en `"type": "module"` pour supprimer l'avertissement de Vitest.** Proposé par l'outil lui-même (avertissement `configLoader: 'native'`). Rejeté : ce changement modifie la résolution de modules de **tout** le projet (seed, `prisma.config.ts`, scripts `tsx`) à quelques jours du rendu, pour un avertissement qui n'empêche aucun test de passer. Le gain (une ligne de moins dans la sortie) ne justifiait pas le risque de casser le démarrage à froid.
 
 Pièges annoncés par le cours, à surveiller dans chaque proposition :
 - configuration Prisma 6 (`url = env(...)` dans le schéma, `prisma-client-js`, pas de driver adapter) alors que nous sommes en Prisma 7 ;
@@ -63,6 +63,16 @@ Pièges annoncés par le cours, à surveiller dans chaque proposition :
 - **Ce qui s'est passé** : les instructions découpées en petites étapes ont rendu facile l'oubli d'un ajout : la variable `gestionnaire` et les boutons de gestion de la page détail n'étaient pas dans le commit 4A.
 - **Détection** : `npx tsc --noEmit` a signalé `Cannot find name 'gestionnaire'` à l'étape suivante.
 - **Correction** : réécriture complète du fichier à partir d'une version de référence, et `tsc` lancé à chaque étape.
+
+### Design — Styles de base hors couche CSS et contraste insuffisant
+- **Ce qui s'est passé** : dans la première version de `globals.css`, les règles `body`, `h1-h3` et `:focus-visible` étaient hors de toute couche CSS. En Tailwind v4, une règle hors couche l'emporte sur les utilitaires : un `font-bold` posé sur un titre aurait été ignoré. Et l'orange choisi (`#E2531D`) donnait un contraste de 3,8:1 avec du texte blanc, sous le seuil WCAG AA de 4,5:1.
+- **Détection** : relecture du fichier avant commit, à notre demande.
+- **Correction** : règles de base déplacées dans `@layer base` ; orange foncé en `#C9461A` (contraste ≈ 4,8:1).
+
+### Phase 7 — Isolation des tests reposant sur une seule ligne
+- **Ce qui s'est passé** : dans la configuration proposée, la bascule vers la base de test tenait à une seule ligne de `tests/setup.ts`. Si elle était supprimée, les tests auraient vidé la base de développement : le garde-fou de `global-setup.ts` ne vérifiait que les variables, pas la connexion réelle.
+- **Détection** : en préparant les sabotages volontaires, en se demandant ce qui se passerait si on « cassait » la configuration elle-même.
+- **Correction** : `viderBase` demande à PostgreSQL le nom de la base réellement connectée (`current_database()`) et refuse de vider toute base qui ne finit pas par `_test`.
 
 ## 4. Bug introduit par génération (exigé par le sujet)
 

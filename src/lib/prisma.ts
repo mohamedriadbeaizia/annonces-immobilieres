@@ -10,8 +10,8 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 function createClient() {
   // DATABASE_URL déjà validée par env.ts : plus besoin de vérifier qu'elle existe.
   const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
-  return new PrismaClient({ adapter, log: ["query"] });
-}
+  // Logs SQL en dev (comptage des requêtes, critère N+1), pas pendant les tests.
+  return new PrismaClient({ adapter, log: process.env.NODE_ENV === "test" ? [] : ["query"] });}
 
 export const prisma = globalForPrisma.prisma ?? createClient();
 
