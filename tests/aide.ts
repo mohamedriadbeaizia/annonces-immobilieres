@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 
 /** Vide la base de TEST (enfants avant parents, à cause des clés étrangères). */
 export async function viderBase() {
+  // Dernier garde-fou : on demande à PostgreSQL à quelle base on est réellement connecté.
+  // Si la bascule de tests/setup.ts venait à manquer, on refuse au lieu d'effacer la base de dev.
+  const [{ base }] = await prisma.$queryRaw<{ base: string }[]>`SELECT current_database() AS base`;
+  if (!base.endsWith("_test")) {
+    throw new Error(`Refus de vider la base "${base}" : ce n'est pas une base de test`);
+  }
+
   await prisma.favori.deleteMany();
   await prisma.question.deleteMany();
   await prisma.photo.deleteMany();
