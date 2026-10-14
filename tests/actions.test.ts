@@ -122,7 +122,7 @@ describe("règles métier appliquées par les actions", () => {
     session.acteur = { id: alice.id, role: "AGENT" };
     const etat = await creerAnnonceAction({}, formulaire({ ...annonceValide, prix: -5 }));
 
-    expect(etat.erreurs?.prix).toContain("Le prix doit être positif");
+    expect(etat?.erreurs?.prix).toContain("Le prix doit être positif");
     expect(await prisma.annonce.count()).toBe(0);
   });
 });
