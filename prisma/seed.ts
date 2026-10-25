@@ -6,6 +6,11 @@ import { prisma } from "../src/lib/prisma";
 const MOT_DE_PASSE: string = process.env.SEED_PASSWORD ?? "";
 if (!MOT_DE_PASSE) throw new Error("SEED_PASSWORD manquant — voir .env.example");
 
+// Mot de passe distinct pour l'admin (démo publique : user et agent sont affichés,
+// l'admin reste privé). Absent → même mot de passe que les autres (dev local).
+const MOT_DE_PASSE_ADMIN: string = process.env.SEED_ADMIN_PASSWORD || MOT_DE_PASSE;
+const ADMIN_SEPARE = MOT_DE_PASSE_ADMIN !== MOT_DE_PASSE;
+
 // Nombre d'annonces réglable pour mesurer le N+1 : NB_ANNONCES=30 npm run db:seed
 const NB_ANNONCES = Number(process.env.NB_ANNONCES ?? 12);
 
@@ -40,7 +45,11 @@ async function creerComptes() {
     // Via l'API Better Auth : le mot de passe est haché (scrypt)
     // et stocké dans la table account. Jamais prisma.user.create ici.
     const { user } = await auth.api.signUpEmail({
-      body: { name: compte.name, email: compte.email, password: MOT_DE_PASSE },
+      body: {
+        name: compte.name,
+        email: compte.email,
+        password: compte.role === "ADMIN" ? MOT_DE_PASSE_ADMIN : MOT_DE_PASSE,
+      },
     });
 
     // Le rôle est attribué côté serveur, après coup :
@@ -115,7 +124,11 @@ async function main() {
     _count: true,
   });
   console.log("\nSeed terminé :");
-  console.log(`  ${COMPTES.length} comptes (mot de passe : SEED_PASSWORD du .env)`);
+  console.log(
+    ADMIN_SEPARE
+      ? `  ${COMPTES.length} comptes (admin : SEED_ADMIN_PASSWORD · autres : SEED_PASSWORD)`
+      : `  ${COMPTES.length} comptes (mot de passe : SEED_PASSWORD du .env)`
+  );
   console.table(COMPTES.map((c) => ({ email: c.email, role: c.role })));
   console.table(parAgent);
 }

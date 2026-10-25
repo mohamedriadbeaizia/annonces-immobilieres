@@ -108,6 +108,7 @@ Toutes documentées dans `.env.example`. Aucune valeur n'est écrite en dur dans
 | `BETTER_AUTH_URL` | configuration | URL publique de l'application |
 | `UPLOAD_DIR` | configuration | dossier de stockage des photos (hors de `public/`) |
 | `SEED_PASSWORD` | configuration | mot de passe des comptes de démonstration |
+| `SEED_ADMIN_PASSWORD` | configuration (optionnelle) | mot de passe distinct du compte admin ; vide → `SEED_PASSWORD` |
 
 **Configuration ou secret ?** Une valeur de configuration peut être documentée dans le dépôt : connaître sa forme ne donne aucun pouvoir. Un secret donne un pouvoir à qui le connaît (ici : fabriquer des cookies de session valides) : il n'apparaît dans le dépôt sous aucune forme.
 

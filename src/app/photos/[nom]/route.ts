@@ -1,11 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { dossierUploads, NOM_FICHIER } from "@/lib/photos";
+import { lirePhoto, NOM_FICHIER, TYPES_MIME } from "@/lib/photos";
 
-const TYPES_MIME = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" } as const;
-
-// Route en LECTURE seule : sert une photo stockée hors de public/.
-// (Next ne sert depuis public/ que les fichiers présents au moment du build.)
+// Route en LECTURE seule : sert une photo, qu'elle soit stockée sur le disque
+// (local) ou sur Vercel Blob (production). Voir src/lib/photos.ts.
 export async function GET(_requete: Request, { params }: { params: Promise<{ nom: string }> }) {
   const { nom } = await params;
 
@@ -18,8 +14,10 @@ export async function GET(_requete: Request, { params }: { params: Promise<{ nom
   const extension = nom.slice(nom.lastIndexOf(".") + 1) as keyof typeof TYPES_MIME;
 
   try {
-    const contenu = await readFile(path.join(dossierUploads(), nom));
-    return new Response(new Uint8Array(contenu), {
+    const contenu = await lirePhoto(nom);
+    if (!contenu) return new Response("Introuvable", { status: 404 });
+
+    return new Response(contenu as BodyInit, {
       headers: {
         "Content-Type": TYPES_MIME[extension],
         // Le nom est un uuid unique, jamais réutilisé : le navigateur peut garder la photo en cache.

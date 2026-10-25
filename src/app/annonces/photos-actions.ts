@@ -1,11 +1,10 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { filtreModifiables, peutGererAnnonces } from "@/lib/authz";
-import { dossierUploads, EXTENSIONS, NOM_FICHIER, typeReel } from "@/lib/photos";
+import { enregistrerPhoto, EXTENSIONS, NOM_FICHIER, supprimerFichierPhoto, typeReel } from "@/lib/photos";
 import { prisma } from "@/lib/prisma";
 import { IdAnnonce, IdPhoto, NB_MAX_PHOTOS_ANNONCE, PhotosInput } from "@/lib/schemas";
 import { exigerUtilisateur } from "@/lib/session";
@@ -56,10 +55,9 @@ export async function ajouterPhotos(_etat: EtatPhotos, formData: FormData): Prom
   // 4. Écriture : fichiers d'abord, base ensuite.
   //    Si la base échoue, il reste au pire un fichier orphelin (sans danger),
   //    jamais une ligne en base qui pointerait vers un fichier inexistant.
-  const dossier = dossierUploads();
-  await mkdir(dossier, { recursive: true });
+  //    Stockage : disque en local, Vercel Blob en production (voir lib/photos.ts).
   for (const { nom, octets } of aEcrire) {
-    await writeFile(path.join(dossier, nom), octets);
+    await enregistrerPhoto(nom, octets);
   }
   await prisma.photo.createMany({
     data: aEcrire.map(({ nom }, i) => ({
@@ -95,7 +93,7 @@ export async function supprimerPhoto(formData: FormData) {
   const nom = path.basename(photo.url);
   if (NOM_FICHIER.test(nom)) {
     // Fichier déjà absent : pas grave, l'objectif (qu'il n'existe plus) est atteint.
-    await unlink(path.join(dossierUploads(), nom)).catch(() => {});
+    await supprimerFichierPhoto(nom).catch(() => {});
   }
 
   rafraichir(photo.annonceId);
