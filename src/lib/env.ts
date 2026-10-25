@@ -13,7 +13,10 @@ const Env = z.object({
   BETTER_AUTH_URL: z.url({ error: "URL manquante ou invalide (ex. http://localhost:3000)" }),
   // Stockage des photos : dossier local par défaut…
   UPLOAD_DIR: z.string(MANQUANTE).min(1, "Dossier des photos requis (ex. ./uploads)").default("./uploads"),
-  // …ou Vercel Blob en production (ajouté automatiquement par Vercel quand on relie un store Blob).
+  // …ou Vercel Blob en production. En reliant un store Blob, Vercel ajoute
+  // BLOB_STORE_ID (authentification OIDC, automatique sur Vercel) ;
+  // BLOB_READ_WRITE_TOKEN reste possible (ancien mode, ou hors Vercel).
+  BLOB_STORE_ID: z.string().min(1).optional(),
   BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
 });
 

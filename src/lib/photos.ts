@@ -20,13 +20,14 @@ export const NOM_FICHIER = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
 /* ==================================================================
    STOCKAGE — deux implémentations derrière la même interface :
    - en local : fichiers dans UPLOAD_DIR (comme avant) ;
-   - en production (Vercel) : Vercel Blob, dès que BLOB_READ_WRITE_TOKEN
-     est défini. Le disque de Vercel est en lecture seule et non partagé
-     entre les instances : les fichiers n'y survivraient pas.
+   - en production (Vercel) : Vercel Blob, dès qu'un store est relié
+     (BLOB_STORE_ID, ou BLOB_READ_WRITE_TOKEN). Le disque de Vercel est en
+     lecture seule et non partagé entre les instances : les fichiers n'y
+     survivraient pas.
    Le reste de l'application ne sait pas où vont les photos.
    ================================================================== */
 
-const surBlob = () => Boolean(env.BLOB_READ_WRITE_TOKEN);
+const surBlob = () => Boolean(env.BLOB_STORE_ID || env.BLOB_READ_WRITE_TOKEN);
 
 // Store Blob en accès PRIVÉ : les photos ne sont servies que par notre
 // route /photos/[nom], avec ses contrôles (nom validé, en-têtes de sécurité).
